@@ -83,9 +83,7 @@ Stack_Error_t Stack_Initialization(Stack_t *Stack);
 * Parameters (out): None
 * Return value    : Stack_Error_t - Status indicating whether the stack is full, empty, or an error.
 * Notes           : - Returns `Stack_Error_Null` if the input pointer is NULL.
-*                   - Checks stack status based on the selected memory mode:
-*                       - Array: Returns `Stack_Error_Full` if the stack is full; otherwise, `Stack_Error_Empty`.
-*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Checks stack status based on the selected memory mode
 *                   - Ensure correct definition of `Memory_Mode` macro before use.
 *****************************************************************************************/
 Stack_Error_t Stack_Status(Stack_t *Stack);
@@ -135,9 +133,7 @@ Stack_Error_t Stack_Pop(Stack_t *Stack,Storage_Type *Data);
 * Parameters (out): Data - Pointer to store the top element.
 * Return value    : Stack_Error_t - Status indicating the success of the operation or an error.
 * Notes           : - Returns `Stack_Error_Null` if the input pointer is NULL.
-*                   - Retrieves the top element from the stack based on the selected memory mode:
-*                       - Array: Checks if the stack is not empty before retrieving.
-*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Retrieves the top element from the stack based on the selected memory mode
 *                   - Ensure correct definition of `Memory_Mode` macro before use.
 *                   - Returns `Stack_Error_Empty` if the stack is empty (Array mode).
 *****************************************************************************************/
@@ -152,9 +148,7 @@ Stack_Error_t Stack_Top(Stack_t *Stack,Storage_Type *Data);
 * Parameters (out): Size - Pointer to store the current size of the stack.
 * Return value    : Stack_Error_t - Status indicating the success of the operation or an error.
 * Notes           : - Returns `Stack_Error_Null` if the input pointer is NULL.
-*                   - Retrieves the current size of the stack based on the selected memory mode:
-*                       - Array: Returns the current stack top index.
-*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Retrieves the current size of the stack based on the selected memory mode
 *                   - Ensure correct definition of `Memory_Mode` macro before use.
 *****************************************************************************************/
 Stack_Error_t Stack_Size(Stack_t *Stack,Storage_Type *Size);
@@ -169,9 +163,7 @@ Stack_Error_t Stack_Size(Stack_t *Stack,Storage_Type *Size);
 * Parameters (out): None
 * Return value    : Stack_Error_t - Status indicating the success of the operation or an error.
 * Notes           : - Returns `Stack_Error_Null` if the input pointer is NULL.
-*                   - Applies the provided function to each element of the stack based on the selected memory mode:
-*                       - Array: Checks if the stack is not empty before traversing.
-*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Applies the provided function to each element of the stack based on the selected memory mode.
 *                   - Ensure correct definition of `Memory_Mode` macro before use.
 *                   - Returns `Stack_Error_Empty` if the stack is empty (Array mode).
 *****************************************************************************************/
@@ -186,9 +178,7 @@ Stack_Error_t Stack_Traverse(Stack_t *Stack,void (*Function)(Storage_Type));
 * Parameters (out): None
 * Return value    : Stack_Error_t - Status indicating the success of the operation or an error.
 * Notes           : - Returns `Stack_Error_Null` if the input pointer is NULL.
-*                   - Clears all elements from the stack based on the selected memory mode:
-*                       - Array: Resets the stack top index to zero.
-*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Clears all elements from the stack based on the selected memory mode.
 *                   - Ensure correct definition of `Memory_Mode` macro before use.
 *****************************************************************************************/
 Stack_Error_t Stack_Clear(Stack_t *Stack);
