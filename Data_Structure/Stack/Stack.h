@@ -14,9 +14,9 @@
 /*****************************************
 ----------   Configuration    ------------
 *****************************************/
-#define Memory_Mode                     Array          /*(Linked_List) (Array)*/
-#define Storage_Type                    u8             /*(u8) (u16) (u32) (s8) (...)*/
-#define Maximum_Stack_Size              5U             /*When Chosing (Array) Max Number Of Stack*/
+#define Memory_Mode                     Linked_List         /*(Linked_List) (Array)*/
+#define Storage_Type                    u8                  /*(u8) (u16) (u32) (s8) (...)*/
+#define Maximum_Stack_Size              5U                  /*When Chosing (Array) Max Number Of Stack*/
 /*****************************************
 ----------    GLOBAL DATA     ------------
 *****************************************/
@@ -40,13 +40,14 @@ typedef struct Stack_t
      u8 Stack_Top;
 }Stack_t;
 #else
+#include <stdlib.h>
 typedef struct Stack_Node_t
 {
      struct Stack_Node_t *Stack_Node_Next;Storage_Type Data;
 }Stack_Node_t;
 typedef struct Stack_t
 {
-     Stack_Node_t *Stack_Node_Top;u8 Current_Size;
+     Stack_Node_t *Stack_Node_Top;u8 Stack_Top;
 }Stack_t;
 #endif
 /*----------- Extern Variables ----------*/

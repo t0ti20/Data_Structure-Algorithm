@@ -46,6 +46,8 @@ int main()
      ADD+=Data;
      print_error(Stack_Pop(&First,&Data));
      ADD+=Data;
+     print_error(Stack_Pop(&First,&Data));
+     ADD+=Data;
      printf("Data===================>%d\n",ADD);
      print_error(Stack_Traverse(&First,Print_Elements));
      printf("======================\n===================\n");
@@ -53,5 +55,6 @@ int main()
      print_error(Stack_Top(&First,&Data));
      print_error(Stack_Traverse(&First,Print_Elements));
      printf("Data===================>%d\n",Data);
+
 }
 
