@@ -9,246 +9,349 @@
 /*****************************************
 -----------     INCLUDES     -------------
 *****************************************/
-#include "./Queue.h"
+#include "Queue.h"
 /*****************************************
 ----------    GLOBAL DATA     ------------
 *****************************************/
-/********************************************************************
-* Syntax          : queue_error Queue_Dequeue_Node(queue_t *my_queue,u8 Node_Number)
-* Description     : Delete Specific Node In Queue
-* Parameters (in) : (Ptr To Queue) (Node Number)
+/*****************************************************************************************
+* Function Name   : Queue_Initialization
+* Description     : Initializes the queue structure based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be initialized.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Dequeue_Node(queue_t *my_queue,u8 Node_Number)
+* Return value    : Queue_Status_t - Status indicating whether the initialization is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Initializes the queue based on the selected memory mode:
+*                       - Array: Initializes the queue size, front, and rear pointers.
+*                       - Linked List: Initializes the queue size, front, and rear pointers as NULL.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Initialization(Queue_t *Queue)
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          Queue->Queue_Size=ZERO;
 #if Memory_Mode == Array
-     if((my_queue->size))
-     {
-          for(u8 Counter=Node_Number-ONE;Counter<my_queue->size;Counter++)
-          {
-               my_queue->elements[Counter]=my_queue->elements[Counter+1];
-          }
-          my_queue->size--;
-     }
-     else flag=Queue_Empty;
+          Queue->Queue_Front=ZERO;
+          Queue->Queue_Rear=-ONE;
 #else
-     #error Not Implemented
+          Queue->Queue_Front=NULL;
+          Queue->Queue_Rear=NULL;
 #endif
-     return flag;
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Traverse_Origin(queue_t *my_queue,void (*function)(storage_type*))
-* Description     : Traverse Function To Queue But With Pointer In Case Of Edit Content 
-* Parameters (in) : (Ptr To Queue) (Ptr To Function)
+/*****************************************************************************************
+* Function Name   : Queue_Status
+* Description     : Checks the status of the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be checked.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Traverse_Origin(queue_t *my_queue,void (*function)(storage_type*))
+* Return value    : Queue_Status_t - Status indicating whether the queue is full, empty, or available.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Checks queue status based on the selected memory mode:
+*                       - Array: Returns `Queue_Status_Full` if the queue is full; otherwise, `Queue_Status_Empty`.
+*                       - Linked List: (TODO) - Currently not implemented.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Status(Queue_t *Queue)
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
 #if Memory_Mode == Array
-     if((my_queue->size))
-     {
-          for(u8 Index=my_queue->front,Counter=ZERO;Counter<my_queue->size;Counter++)
-          {
-               function(&(my_queue->elements[Index]));
-               Index=(Index+1)%Queue_Size;
-          }
-     }
-     else flag=Queue_Empty;
+          Flag=(Queue->Queue_Size==Maximum_Queue_Size)?Queue_Status_Full:(Queue->Queue_Size==ZERO)?Queue_Status_Empty:Queue_Status_Available;
 #else
-     #error Not Implemented
+          Flag=(Queue->Queue_Size==ZERO)?Queue_Status_Empty:Queue_Status_Available;
 #endif
-     return flag;
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Traverse(queue_t *my_queue,void (*function)(storage_type))
-* Description     : Traverse Function To Queue
-* Parameters (in) : (Ptr To Queue) (Ptr To Function)
+/*****************************************************************************************
+* Function Name   : Queue_Enqueue
+* Description     : Adds an element to the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure where the element will be added.
+*                   : Data - The element to be added to the queue.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Traverse(queue_t *my_queue,void (*function)(storage_type))
+* Return value    : Queue_Status_t - Status indicating whether the element is successfully enqueued or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Full` if the queue is full (only applicable in Array memory mode).
+*                   - Returns `Queue_Status_Allocation` if memory allocation fails (only applicable in Linked List memory mode).
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Enqueue(Queue_t *Queue,Storage_Type Data)
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
 #if Memory_Mode == Array
-     if((my_queue->size))
-     {
-          for(u8 Index=my_queue->front,Counter=ZERO;Counter<my_queue->size;Counter++)
+          if(Queue_Status(Queue)!=Queue_Status_Full)
           {
-               function(my_queue->elements[Index]);
-               Index=(Index+1)%Queue_Size;
+               Queue->Queue_Rear=(Queue->Queue_Rear+ONE)%Maximum_Queue_Size;
+               Queue->Queue_Elements[Queue->Queue_Rear]=Data;
+               Queue->Queue_Size++;
           }
-     }
-     else flag=Queue_Empty;
+          else {Flag=Queue_Status_Full;}
 #else
-     if((my_queue->size))
-     {
-          for(queue_node_t *node=my_queue->front;node;node=node->next_node)
+          Queue_Node_t *Queue_Node=(Queue_Node_t *)malloc(sizeof(Queue_Node_t));
+          if(Queue_Node)
           {
-               function(node->data);
+               Queue_Node->Queue_Node_Next=NULL;
+               Queue_Node->Data=Data;
+               if(!(Queue->Queue_Rear)){Queue->Queue_Front=Queue_Node;}
+               else{Queue->Queue_Rear->Queue_Node_Next=Queue_Node;}
+               Queue->Queue_Rear=Queue_Node;
+               Queue->Queue_Size++;
           }
-     }
-     else flag=Queue_Empty;
+          else {Flag=Queue_Status_Allocation;}
 #endif
-     return flag;
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Enqueue(queue_t *my_queue,storage_type data)
-* Description     : Add Elements To Queue
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue) (Copy Of Data)
+/*****************************************************************************************
+* Function Name   : Queue_Dequeue_Node
+* Description     : Removes a specific node from the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure from which the node will be dequeued.
+*                   : Node_Number - The position of the node to be dequeued.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Enqueue(queue_t *my_queue,storage_type data)
+* Return value    : Queue_Status_t - Status indicating whether the node is successfully dequeued or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Dequeue_Node(Queue_t *Queue,u8 Node_Number)
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
 #if Memory_Mode == Array
-     if((my_queue->size)<Queue_Size)
-     {
-          my_queue->rear=(my_queue->rear+ONE)%Queue_Size;
-          my_queue->elements[my_queue->rear]=data;
-          my_queue->size++;
-     }
-     else flag=Queue_Full;
+               for(u8 Counter=Node_Number-ONE;Counter<Queue->Queue_Size;Counter++)
+               {
+                    Queue->Queue_Elements[Counter]=Queue->Queue_Elements[Counter+1];
+               }
 #else
-     queue_node_t *node=(queue_node_t *)malloc(sizeof(queue_node_t));
-     if(node)
-     {
-          node->next_node=NULL;
-          node->data=data;
-          if(!(my_queue->rear))
-          {
-               my_queue->front=node;
-          }
-          else
-          {
-               my_queue->rear->next_node=node; 
-          }
-          my_queue->rear=node;
-          my_queue->size++;
-     }
-     else flag=Queue_Allocation_Error;
+               Queue_Node_t *Previous_Queue_Node=NULL,*Next_Queue_Node=NULL;
+               for(Previous_Queue_Node=Queue->Queue_Front;--Node_Number;Previous_Queue_Node=Queue->Queue_Front){}
+               Next_Queue_Node=Previous_Queue_Node->Queue_Node_Next->Queue_Node_Next;
+               free(Previous_Queue_Node->Queue_Node_Next);
+               Previous_Queue_Node->Queue_Node_Next=Next_Queue_Node;
 #endif
-     return flag;
+               Queue->Queue_Size--;
+          }
+          else {Flag=Queue_Status_Empty;}
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Dequeue(queue_t *my_queue,storage_type *data)
-* Description     : Get An Element From Queue
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue) (Ptr To Storage Data)
+/*****************************************************************************************
+* Function Name   : Queue_Traverse_Origin
+* Description     : Traverses and applies a function to each element in the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be traversed.
+*                   : Function - Pointer to the function to be applied to each element.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Dequeue(queue_t *my_queue,storage_type *data)
+* Return value    : Queue_Status_t - Status indicating whether the traversal is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Traverse_Origin(Queue_t *Queue,void (*Function)(Storage_Type*))
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
 #if Memory_Mode == Array
-     if(my_queue->size)
-     {
-          *data=my_queue->elements[my_queue->front];
-          my_queue->front=(my_queue->front+ONE)%Queue_Size;
-          my_queue->size--;
-     }
-     else flag=Queue_Empty;
+               for(u8 Index=Queue->Queue_Front,Counter=ZERO;Counter<Queue->Queue_Size;Counter++)
+               {
+                    Function(&(Queue->Queue_Elements[Index]));
+                    Index=(Index+1)%Maximum_Queue_Size;
+               }
 #else
-     if(my_queue->size)
-     {
-          queue_node_t *node=my_queue->front;
-          *data=node->data;
-          my_queue->front=node->next_node;
-          free(node);
-          if(!(my_queue->front))
-          {
-               my_queue->rear=NULL;
-          }
-          my_queue->size--;
-     }
-     else flag=Queue_Empty;
-
+     for(Queue_Node_t *Queue_Node=Queue->Queue_Front;Queue_Node;Queue_Node=Queue_Node->Queue_Node_Next){Function(&(Queue_Node->Data));}
 #endif
-     return flag;
+          }
+          else {Flag=Queue_Status_Empty;}
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Initialization(queue_t *my_queue)
-* Description     : Initialize Queue
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue)
+/*****************************************************************************************
+* Function Name   : Queue_Traverse
+* Description     : Traverses and applies a function to each element in the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be traversed.
+*                   : Function - Pointer to the function to be applied to each element.
 * Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Initialization(queue_t *my_queue)
+* Return value    : Queue_Status_t - Status indicating whether the traversal is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Traverse(Queue_t *Queue,void (*Function)(Storage_Type))
 {
-     queue_error flag=Queue_Ok;
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
 #if Memory_Mode == Array
-     my_queue->size=ZERO;
-     my_queue->front=ZERO;
-     my_queue->rear=-ONE;
+               for(u8 Index=Queue->Queue_Front,Counter=ZERO;Counter<Queue->Queue_Size;Counter++)
+               {
+                    Function(Queue->Queue_Elements[Index]);
+                    Index=(Index+1)%Maximum_Queue_Size;
+               }
 #else
-     my_queue->front=NULL;
-     my_queue->rear=NULL;
-     my_queue->size=ZERO;
+               for(Queue_Node_t *Queue_Node=Queue->Queue_Front;Queue_Node;Queue_Node=Queue_Node->Queue_Node_Next){Function(Queue_Node->Data);} 
 #endif
-     return flag;
-}
-/********************************************************************
-* Syntax          : queue_error Queue_Clear(queue_t *my_queue)
-* Description     : Clear All Elements In Queue
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue)
-* Parameters (out): None
-* Return value:   : queue_error
-********************************************************************/
-queue_error Queue_Clear(queue_t *my_queue)
-{
-     #if Memory_Mode != Array
-     if((my_queue->size))
-     {
-          for(queue_node_t *node=my_queue->front;node;node=my_queue->front)
-          {
-               my_queue->front=node->next_node;
-               free(node);
           }
+          else Flag=Queue_Status_Empty;
      }
-     #endif
-     return Queue_Initialization(my_queue);
+     return Flag;
 }
-/********************************************************************
-* Syntax          : s8 Queue_Is_Empty(queue_t *my_queue)
-* Description     : Check If Queue Is Empty
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue)
-* Parameters (out): None
-* Return value:   : s8 (True) (False)
-********************************************************************/
-s8 Queue_Is_Empty(queue_t *my_queue)
+/*****************************************************************************************
+* Function Name   : Queue_Dequeue
+* Description     : Removes an element from the front of the queue and retrieves its value.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure from which the element will be dequeued.
+* Parameters (out): Data - Pointer to store the value of the dequeued element.
+* Return value    : Queue_Status_t - Status indicating whether the element is successfully dequeued or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Dequeue(Queue_t *Queue,Storage_Type *Data)
 {
-     return !(my_queue->size);
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
+#if Memory_Mode == Array
+               *Data=Queue->Queue_Elements[Queue->Queue_Front];
+               Queue->Queue_Front=(Queue->Queue_Front+ONE)%Maximum_Queue_Size;
+               Queue->Queue_Size--;
+#else
+               Queue_Node_t *Queue_Node=Queue->Queue_Front;
+               *Data=Queue_Node->Data;
+               Queue->Queue_Front=Queue_Node->Queue_Node_Next;
+               free(Queue_Node);
+               if(!(Queue->Queue_Front)){Queue->Queue_Rear=NULL;}
+               Queue->Queue_Size--;
+#endif
+          }
+          else {Flag=Queue_Status_Empty;*Data=ZERO;}
+     }
+     return Flag;
 }
-/********************************************************************
-* Syntax          : queue_error Queue_Is_Full(queue_t *my_queue)
-* Description     : Check If Queue Is Full
-* Sync-Async      : *
-* Reentrancy      : *
-* Parameters (in) : (Ptr To Queue)
+/*****************************************************************************************
+* Function Name   : Queue_Clear
+* Description     : Clears all elements from the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be cleared.
 * Parameters (out): None
-* Return value:   : s8 (True) (False)
-********************************************************************/
-s8 Queue_Is_Full(queue_t *my_queue)
+* Return value    : Queue_Status_t - Status indicating whether the clearing is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Clear(Queue_t *Queue)
 {
-     #if Memory_Mode == Array
-     return (my_queue->size==Queue_Size);
-     #else
-     return False;
-     #endif
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+#if Memory_Mode != Array
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
+               for(Queue_Node_t *Queue_Node=Queue->Queue_Front;Queue_Node;Queue_Node=Queue->Queue_Front)
+               {
+                    Queue->Queue_Front=Queue_Node->Queue_Node_Next;
+                    free(Queue_Node);
+               }
+          }
+#endif
+          Flag=Queue_Initialization(Queue);
+     }
+     return Flag;
+}
+/*****************************************************************************************
+* Function Name   : Queue_Rear
+* Description     : Retrieves the element at the rear of the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be checked.
+* Parameters (out): Data - Pointer to the variable where the rear element will be stored.
+* Return value    : Queue_Status_t - Status indicating whether the operation is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Rear(Queue_t *Queue,Storage_Type *Data)
+{
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
+#if Memory_Mode == Array
+               *Data=Queue->Queue_Elements[Queue->Queue_Rear];
+#else
+               *Data=Queue->Queue_Rear->Data;
+#endif
+          }
+          else {Flag=Queue_Status_Empty;*Data=ZERO;}
+     }
+     return Flag;
+}
+/*****************************************************************************************
+* Function Name   : Queue_Front
+* Description     : Retrieves the element at the front of the queue based on the selected memory mode.
+* Sync-Async      : Synchronous
+* Reentrancy      : Reentrant
+* Parameters (in) : Queue - Pointer to the queue structure to be checked.
+* Parameters (out): Data - Pointer to the variable where the front element will be stored.
+* Return value    : Queue_Status_t - Status indicating whether the operation is successful or an error occurred.
+* Notes           : - Returns `Queue_Status_Null` if the input pointer is NULL.
+*                   - Returns `Queue_Status_Empty` if the queue is empty.
+*                   - Ensure correct definition of `Memory_Mode` macro before use.
+*****************************************************************************************/
+Queue_Status_t Queue_Front(Queue_t *Queue,Storage_Type *Data)
+{
+     Queue_Status_t Flag=Queue_Status_Ok;
+     if(NULL==Queue){Flag=Queue_Status_Null;}
+     else
+     {
+          if(Queue_Status(Queue)!=Queue_Status_Empty)
+          {
+#if Memory_Mode == Array
+               *Data=Queue->Queue_Elements[Queue->Queue_Front];
+#else
+               *Data=Queue->Queue_Front->Data;
+#endif
+          }
+          else {Flag=Queue_Status_Empty;*Data=ZERO;}
+     }
+     return Flag;
 }
 /********************************************************************
  *  END OF FILE: Queue.c

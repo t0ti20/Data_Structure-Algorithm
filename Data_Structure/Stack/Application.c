@@ -1,15 +1,15 @@
 #include "Stack.h"
 #include <stdio.h>
-void print_error(Stack_Error_t Error)
+void print_error(Stack_Status_t Error)
 {
      switch (Error)
      {
-          case Stack_Error_Ok:printf("There Is No Error\n");break;
-          case Stack_Error_Available:printf("Stack Is Available\n");break;
-          case Stack_Error_Full:printf("Stack Is Full \n");break;
-          case Stack_Error_Empty:printf("Stack Is Empty \n");break;
-          case Stack_Error_Allocation:printf("Cannot Allocate Memory \n");break;
-          case Stack_Error_Null:printf("Null Pointer Error\n");break;
+          case Stack_Status_Ok:printf("There Is No Error\n");break;
+          case Stack_Status_Available:printf("Stack Is Available\n");break;
+          case Stack_Status_Full:printf("Stack Is Full \n");break;
+          case Stack_Status_Empty:printf("Stack Is Empty \n");break;
+          case Stack_Status_Allocation:printf("Cannot Allocate Memory \n");break;
+          case Stack_Status_Null:printf("Null Pointer Error\n");break;
           default:printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");break;
      }
      printf("=======================\n");
