@@ -33,29 +33,32 @@ int main()
      print_error(Queue_Enqueue(&First,6));
      print_error(Queue_Traverse(&First,Print_Elements));
      printf("======================\n===================\n");
-     /*(-------------------------------------)*/
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     print_error(Queue_Dequeue(&First,&Data));
-     ADD+=Data;
-     printf("Data===================>%d\n",ADD);
+     print_error(Queue_Dequeue_Node(&First,2));
      print_error(Queue_Traverse(&First,Print_Elements));
-     printf("======================\n===================\n");
-     print_error(Queue_Enqueue(&First,6));
-     print_error(Queue_Front(&First,&Data));
-     print_error(Queue_Rear(&First,&Data));
-     print_error(Queue_Traverse(&First,Print_Elements));
-     printf("Data===================>%d\n",Data);
+     // printf("======================\n===================\n");
+     // /*(-------------------------------------)*/
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // print_error(Queue_Dequeue(&First,&Data));
+     // ADD+=Data;
+     // printf("Data===================>%d\n",ADD);
+     // print_error(Queue_Traverse(&First,Print_Elements));
+     // printf("======================\n===================\n");
+     // print_error(Queue_Enqueue(&First,6));
+     // print_error(Queue_Front(&First,&Data));
+     // print_error(Queue_Rear(&First,&Data));
+     // print_error(Queue_Traverse(&First,Print_Elements));
+     // printf("Data===================>%d\n",Data);
 
 }
 
