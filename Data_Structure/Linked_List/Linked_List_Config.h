@@ -9,14 +9,10 @@
 #ifndef _LINKED_LIST_CONFIG_H_
 #define _LINKED_LIST_CONFIG_H_
 /********************************************************************/
-typedef struct student_t
-{
-     int Height;int Student_ID;char Name[20];
-}student_t;
 /*****************************************
 ----------   Configuration    ------------
 *****************************************/
-#define storage_type student_t
+#define Storage_Type                    int
 /********************************************************************
  *  END OF FILE:  Linked_List_Config.h
 ********************************************************************/
